@@ -5,6 +5,7 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import com.dlfsystems.glestest.Level
 import com.dlfsystems.glestest.R
+import com.dlfsystems.glestest.Tile
 import com.dlfsystems.glestest.Tile.*
 import com.dlfsystems.glestest.XY
 import com.dlfsystems.glestest.render.DrawList
@@ -32,6 +33,8 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
 
     private lateinit var dungeonTiles: TileSet
     private lateinit var dungeonDrawList: DrawList
+    private lateinit var mobTiles: TileSet
+    private lateinit var mobDrawList: DrawList
 
     private var level: Level? = null
     private var stride: Double = 0.01
@@ -69,24 +72,34 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
 
     override fun onSurfaceChanged(p0: GL10?, newWidth: Int, newHeight: Int) {
         GLES20.glViewport(0, 0, newWidth, newHeight)
-        dungeonDrawList.aspectRatio = newWidth.toDouble() / newHeight.toDouble()
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
+        GLES20.glEnable(GLES20.GL_BLEND)
+        val aspectRatio = newWidth.toDouble() / newHeight.toDouble()
+        dungeonDrawList.aspectRatio = aspectRatio
+        mobDrawList.aspectRatio = aspectRatio
         width = newWidth
         height = newHeight
         updateStride()
     }
 
     override fun onDrawFrame(p0: GL10?) {
+        fun DrawList.addTileQuad(col: Int, row: Int, tile: Tile, visibility: Float) {
+            val x0 = col.toDouble() * stride - (stride * 0.5)
+            val y0 = row.toDouble() * stride - (stride * 0.5)
+            addQuad(x0, y0, x0 + stride, y0 + stride, tile, visibility)
+        }
+
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         dungeonDrawList.clear()
+        mobDrawList.clear()
 
         level?.also { level ->
             for (tx in 0 until level.width) {
                 for (ty in 0 until level.height) {
-                    val x0 = (tx - pov.x).toDouble() * stride - (stride * 0.5)
-                    val y0 = (ty - pov.y).toDouble() * stride - (stride * 0.5)
                     // TODO: optimize: only add onscreen quads
-                    dungeonDrawList.addQuad(x0, y0,
-                        x0 + stride, y0 + stride,
+                    dungeonDrawList.addTileQuad(
+                        tx - pov.x,
+                        ty - pov.y,
                         level.tiles[tx][ty],
                         level.visibility[tx][ty]
                     )
@@ -95,6 +108,9 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
         }
 
         dungeonDrawList.draw()
+
+        mobDrawList.addTileQuad(0, 0, PLAYER, 1f)
+        mobDrawList.draw()
     }
 
     // Recalculate the size in glcoords of one tile
@@ -113,6 +129,12 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
         }
 
         dungeonDrawList = DrawList(tileVertShader(), tileFragShader(), dungeonTiles)
+
+        mobTiles = TileSet(R.drawable.tiles_mob, 7, 4, context).apply {
+            setTile(PLAYER, 2, 2)
+        }
+
+        mobDrawList = DrawList(tileVertShader(), tileFragShader(), mobTiles)
     }
 
 }
