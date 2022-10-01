@@ -4,6 +4,10 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.dlfsystems.glestest.cartos.SimpleCarto
 import com.dlfsystems.glestest.tileview.TileView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
@@ -17,5 +21,12 @@ class MainActivity : AppCompatActivity() {
         val tileView = findViewById<TileView>(R.id.tile_view)
         val testLevel = SimpleCarto.makeLevel()
         tileView.observeLevel(testLevel)
+
+        CoroutineScope(Dispatchers.Default).launch {
+            tileView.clicks.collectLatest { xy ->
+                Timber.d("CLICK ON ${xy.x} ${xy.y}")
+                tileView.moveCenter(xy.x, xy.y)
+            }
+        }
     }
 }
