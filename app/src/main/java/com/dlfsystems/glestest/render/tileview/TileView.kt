@@ -1,4 +1,4 @@
-package com.dlfsystems.glestest.tileview
+package com.dlfsystems.glestest.render.tileview
 
 import android.content.Context
 import android.opengl.GLSurfaceView
@@ -41,7 +41,7 @@ class TileView(context: Context, attrs: AttributeSet) :
     }
 
     fun moveCenter(newX: Int, newY: Int) {
-        renderer.center = XY(newX, newY)
+        renderer.moveCenter(newX, newY)
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
@@ -54,7 +54,6 @@ class TileView(context: Context, attrs: AttributeSet) :
         return when (event?.action) {
             MotionEvent.ACTION_DOWN -> {
                 lastDownTime = System.currentTimeMillis()
-                //Timber.d("DING ${event.x} ${event.y}")
                 handled
             }
             MotionEvent.ACTION_UP -> {

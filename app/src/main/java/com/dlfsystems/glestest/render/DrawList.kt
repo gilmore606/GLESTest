@@ -1,4 +1,4 @@
-package com.dlfsystems.glestest.opengl
+package com.dlfsystems.glestest.render
 
 import android.opengl.GLES20
 import com.dlfsystems.glestest.Tile
@@ -17,11 +17,15 @@ class DrawList(
     private val VERTEX_STRIDE = COORDS_PER_VERTEX * 4
     private val MAX_QUADS = 10000
 
-    private var vbo: FloatBuffer = ByteBuffer.allocateDirect(MAX_QUADS * VERTEX_STRIDE * 4).run {
+    private var vertexBuffer: FloatBuffer = ByteBuffer.allocateDirect(MAX_QUADS * VERTEX_STRIDE * 6).run {
         order(ByteOrder.nativeOrder())
         asFloatBuffer()
     }
-    private var tbo: FloatBuffer = ByteBuffer.allocateDirect(MAX_QUADS * 2 * 4 * 4).run {
+    private var texCoordBuffer: FloatBuffer = ByteBuffer.allocateDirect(MAX_QUADS * 2 * 4 * 6).run {
+        order(ByteOrder.nativeOrder())
+        asFloatBuffer()
+    }
+    private var visibilityBuffer: FloatBuffer = ByteBuffer.allocateDirect(MAX_QUADS * 6 * 4).run {
         order(ByteOrder.nativeOrder())
         asFloatBuffer()
     }
@@ -29,6 +33,7 @@ class DrawList(
     private var program = -1
     private var shaderPositionHandle = -1
     private var shaderTexcoordHandle = -1
+    private var shaderVisibilityHandle = -1
 
     init {
         program = GLES20.glCreateProgram()
@@ -47,15 +52,17 @@ class DrawList(
 
         shaderPositionHandle = GLES20.glGetAttribLocation(program, "a_Position")
         shaderTexcoordHandle = GLES20.glGetAttribLocation(program, "a_TexCoordinate")
+        shaderVisibilityHandle = GLES20.glGetAttribLocation(program, "a_Visibility")
     }
 
     fun clear() {
-        vbo.clear()
-        tbo.clear()
+        vertexBuffer.clear()
+        texCoordBuffer.clear()
+        visibilityBuffer.clear()
         vertCount = 0
     }
 
-    fun addQuad(ix0: Double, iy0: Double, ix1: Double, iy1: Double, tile: Tile) {
+    fun addQuad(ix0: Double, iy0: Double, ix1: Double, iy1: Double, tile: Tile, visibility: Float) {
         val x0 = (ix0 / aspectRatio).toFloat()
         val y0 = (-iy0).toFloat()
         val x1 = (ix1 / aspectRatio).toFloat()
@@ -68,30 +75,33 @@ class DrawList(
         val ty0 = tileY * tileSet.tileColumnStride
         val ty1 = ty0 + tileSet.tileColumnStride
 
-        vbo.put(x0) // doing this one float at a time to avoid allocating another buffer
-        vbo.put(y0)
-        vbo.put(x0)
-        vbo.put(y1)
-        vbo.put(x1)
-        vbo.put(y0)
-        tbo.put(tx0)
-        tbo.put(ty0)
-        tbo.put(tx0)
-        tbo.put(ty1)
-        tbo.put(tx1)
-        tbo.put(ty0)
-        vbo.put(x1)
-        vbo.put(y0)
-        vbo.put(x0)
-        vbo.put(y1)
-        vbo.put(x1)
-        vbo.put(y1)
-        tbo.put(tx1)
-        tbo.put(ty0)
-        tbo.put(tx0)
-        tbo.put(ty1)
-        tbo.put(tx1)
-        tbo.put(ty1)
+        vertexBuffer.put(x0) // doing this one float at a time to avoid allocating another buffer
+        vertexBuffer.put(y0)
+        vertexBuffer.put(x0)
+        vertexBuffer.put(y1)
+        vertexBuffer.put(x1)
+        vertexBuffer.put(y0)
+        texCoordBuffer.put(tx0)
+        texCoordBuffer.put(ty0)
+        texCoordBuffer.put(tx0)
+        texCoordBuffer.put(ty1)
+        texCoordBuffer.put(tx1)
+        texCoordBuffer.put(ty0)
+        vertexBuffer.put(x1)
+        vertexBuffer.put(y0)
+        vertexBuffer.put(x0)
+        vertexBuffer.put(y1)
+        vertexBuffer.put(x1)
+        vertexBuffer.put(y1)
+        texCoordBuffer.put(tx1)
+        texCoordBuffer.put(ty0)
+        texCoordBuffer.put(tx0)
+        texCoordBuffer.put(ty1)
+        texCoordBuffer.put(tx1)
+        texCoordBuffer.put(ty1)
+        repeat(6) {
+            visibilityBuffer.put(visibility)
+        }
 
         vertCount += 6
     }
@@ -102,12 +112,15 @@ class DrawList(
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, tileSet.textureHandle)
         GLES20.glUniform1i(tileSet.textureHandle, 0)
 
-        vbo.position(0)
-        GLES20.glVertexAttribPointer(shaderPositionHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, vbo)
+        vertexBuffer.position(0)
+        GLES20.glVertexAttribPointer(shaderPositionHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, vertexBuffer)
         GLES20.glEnableVertexAttribArray(shaderPositionHandle)
-        tbo.position(0)
-        GLES20.glVertexAttribPointer(shaderTexcoordHandle, 2, GLES20.GL_FLOAT, false, 0, tbo)
+        texCoordBuffer.position(0)
+        GLES20.glVertexAttribPointer(shaderTexcoordHandle, 2, GLES20.GL_FLOAT, false, 0, texCoordBuffer)
         GLES20.glEnableVertexAttribArray(shaderTexcoordHandle)
+        visibilityBuffer.position(0)
+        GLES20.glVertexAttribPointer(shaderVisibilityHandle, 1, GLES20.GL_FLOAT, false, 0, visibilityBuffer)
+        GLES20.glEnableVertexAttribArray(shaderVisibilityHandle)
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertCount)
     }

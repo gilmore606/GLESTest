@@ -1,4 +1,4 @@
-package com.dlfsystems.glestest.tileview
+package com.dlfsystems.glestest.render.tileview
 
 import android.content.Context
 import android.opengl.GLES20
@@ -7,8 +7,8 @@ import com.dlfsystems.glestest.Level
 import com.dlfsystems.glestest.R
 import com.dlfsystems.glestest.Tile.*
 import com.dlfsystems.glestest.XY
-import com.dlfsystems.glestest.opengl.DrawList
-import com.dlfsystems.glestest.opengl.TileSet
+import com.dlfsystems.glestest.render.DrawList
+import com.dlfsystems.glestest.render.TileSet
 import com.dlfsystems.glestest.shaders.tileFragShader
 import com.dlfsystems.glestest.shaders.tileVertShader
 import timber.log.Timber
@@ -27,8 +27,6 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
 
     var viewLocation = XY(0, 0)
 
-    var center = XY(5,5)
-
     private var width = 0
     private var height = 0
 
@@ -39,8 +37,15 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
     private var stride: Double = 0.01
     private var pixelStride: Double = 0.01
 
+    private val pov: XY
+        get() = level?.pov ?: XY(0,0)
+
     fun observeLevel(newLevel: Level) {
         level = newLevel
+    }
+
+    fun moveCenter(newX: Int, newY: Int) {
+        level?.pov = XY(newX, newY)
     }
 
     // Convert an XY pixel touch event to an absolute tile XY on the level.
@@ -51,8 +56,8 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
         val ySign = y.sign.toInt()
         Timber.d("$x $y stride $pixelStride")
         return XY(
-            abs(x / pixelStride).toInt() * xSign + (if (xSign == -1) -1 else 0) + center.x,
-            abs(y / pixelStride).toInt() * ySign + (if (ySign == -1) -1 else 0) + center.y
+            abs(x / pixelStride).toInt() * xSign + (if (xSign == -1) -1 else 0) + pov.x,
+            abs(y / pixelStride).toInt() * ySign + (if (ySign == -1) -1 else 0) + pov.y
         )
     }
 
@@ -77,10 +82,14 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
         level?.also { level ->
             for (tx in 0 until level.width) {
                 for (ty in 0 until level.height) {
-                    val x0 = (tx - center.x).toDouble() * stride - (stride * 0.5)
-                    val y0 = (ty - center.y).toDouble() * stride - (stride * 0.5)
+                    val x0 = (tx - pov.x).toDouble() * stride - (stride * 0.5)
+                    val y0 = (ty - pov.y).toDouble() * stride - (stride * 0.5)
                     // TODO: optimize: only add onscreen quads
-                    dungeonDrawList.addQuad(x0, y0, x0 + stride, y0 + stride, level.tiles[tx][ty])
+                    dungeonDrawList.addQuad(x0, y0,
+                        x0 + stride, y0 + stride,
+                        level.tiles[tx][ty],
+                        level.visibility[tx][ty]
+                    )
                 }
             }
         }

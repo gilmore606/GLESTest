@@ -1,4 +1,4 @@
-package com.dlfsystems.glestest.opengl
+package com.dlfsystems.glestest.render
 
 import android.graphics.BitmapFactory
 import android.content.Context
