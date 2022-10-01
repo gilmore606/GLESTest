@@ -94,6 +94,7 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
         mobDrawList.clear()
 
         level?.also { level ->
+            level.updateVisibility()
             for (tx in 0 until level.width) {
                 for (ty in 0 until level.height) {
                     // TODO: optimize: only add onscreen quads

@@ -9,8 +9,9 @@ class Level(val width: Int, val height: Int) {
     var pov = XY(0, 0)
         set(value) {
             field = value
-            updateVisibility()
+            isVisibilityDirty = true
         }
+    private var isVisibilityDirty = false
 
     val tiles = Array(width) { Array(height) { WALL } }
     val visibility = Array(width) { Array(height) { 0f } }
@@ -31,11 +32,10 @@ class Level(val width: Int, val height: Int) {
         }
     }
 
-    private fun resetVisibility() {
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                visibility[x][y] = 0.5f
-            }
+    fun updateVisibility() {
+        if (isVisibilityDirty) {
+            doUpdateVisibility()
+            isVisibilityDirty = false
         }
     }
 
@@ -52,8 +52,12 @@ class Level(val width: Int, val height: Int) {
         } catch (e: ArrayIndexOutOfBoundsException) { return true }
     }
 
-    private fun updateVisibility(distance: Int = 8) {
-        resetVisibility()
+    private fun doUpdateVisibility(distance: Int = 14) {
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                visibility[x][y] = 0.5f
+            }
+        }
         castShadows(
             pov,
             distance.toFloat(),
