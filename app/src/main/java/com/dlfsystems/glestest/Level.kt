@@ -33,8 +33,18 @@ class Level(val width: Int, val height: Int) {
     }
 
     fun updateVisibility() {
+        val distance = 12f
         if (isVisibilityDirty) {
-            doUpdateVisibility()
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    visible[x][y] = false
+                }
+            }
+            castShadows(
+                pov, distance,
+                { x, y -> isOpaqueAt(x, y) },
+                { x, y, vis -> setTileVisibility(x, y, vis) }
+            )
             isVisibilityDirty = false
         }
     }
@@ -47,28 +57,14 @@ class Level(val width: Int, val height: Int) {
         (if (seen[x][y]) 0.6f else 0f) + (if (visible[x][y]) 0.4f else 0f)
     } catch (e: ArrayIndexOutOfBoundsException) { 0f }
 
+    private fun isOpaqueAt(x: Int, y: Int): Boolean = try {
+        tiles[x][y] !== FLOOR
+    } catch (e: ArrayIndexOutOfBoundsException) { true }
+
     private fun setTileVisibility(x: Int, y: Int, vis: Boolean) {
         try {
             visible[x][y] = vis
             if (vis) seen[x][y] = true
         } catch (e: ArrayIndexOutOfBoundsException) { }
-    }
-
-    private fun isOpaqueAt(x: Int, y: Int): Boolean = try {
-            tiles[x][y] !== FLOOR
-        } catch (e: ArrayIndexOutOfBoundsException) { true }
-
-    private fun doUpdateVisibility(distance: Int = 14) {
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                visible[x][y] = false
-            }
-        }
-        castShadows(
-            pov,
-            distance.toFloat(),
-            { x, y -> isOpaqueAt(x, y) },
-            { x, y, vis -> setTileVisibility(x, y, vis) }
-        )
     }
 }

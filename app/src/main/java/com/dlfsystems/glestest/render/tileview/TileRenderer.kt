@@ -35,10 +35,14 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
     private lateinit var dungeonDrawList: DrawList
     private lateinit var mobTiles: TileSet
     private lateinit var mobDrawList: DrawList
+    private lateinit var uiTiles: TileSet
+    private lateinit var uiDrawList: DrawList
 
     private var level: Level? = null
     private var stride: Double = 0.01
     private var pixelStride: Double = 0.01
+
+    var cursorPosition: XY? = null
 
     private val pov: XY
         get() = level?.pov ?: XY(0,0)
@@ -53,12 +57,13 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
 
     // Convert an XY pixel touch event to an absolute tile XY on the level.
     fun touchToTileXY(touchX: Float, touchY: Float): XY {
+        val topBarSpace = 96
         val glX = ((touchX - viewLocation.x) / width) * 2.0 - 1.0
-        val glY = ((touchY - viewLocation.y) / height) * 2.0 - 1.0
-        val col = ((glX * aspectRatio) + stride * 0.5) / stride
-        val row = (glY + stride * 0.5) / stride
-        Timber.d("------>   $col $row")
-        //return XY(col.toInt(), row.toInt())
+        val glY = ((touchY - viewLocation.y - topBarSpace) / (height - topBarSpace)) * 2.0 - 1.0
+        val col = ((glX * aspectRatio) + stride * 0.5) / stride + pov.x
+        val row = (glY + stride * 0.5) / stride + pov.y
+        Timber.d("------>   $col $row  ///  $glX $glY ")
+        return XY(col.toInt(), row.toInt())
 
         val x = (touchX - viewLocation.x) + pixelStride / 2 - width / 2
         val y = (touchY - viewLocation.y) - height / 2
@@ -91,6 +96,7 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         dungeonDrawList.clear()
         mobDrawList.clear()
+        uiDrawList.clear()
 
         level?.also { level ->
             level.updateVisibility()
@@ -111,6 +117,11 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
 
         mobDrawList.addTileQuad(0, 0, stride, PLAYER, 1f, aspectRatio)
         mobDrawList.draw()
+
+        cursorPosition?.also { cursorPosition ->
+            uiDrawList.addTileQuad(cursorPosition.x - pov.x, cursorPosition.y - pov.y, stride, CURSOR, 1f, aspectRatio)
+        }
+        uiDrawList.draw()
     }
 
     private fun updateSurfaceParams() {
@@ -135,6 +146,12 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
         }
 
         mobDrawList = DrawList(tileVertShader(), tileFragShader(), mobTiles)
+
+        uiTiles = TileSet(R.drawable.tiles_ui, 1, 1, context).apply {
+            setTile(CURSOR, 0, 0)
+        }
+
+        uiDrawList = DrawList(tileVertShader(), tileFragShader(), uiTiles)
     }
 
 }

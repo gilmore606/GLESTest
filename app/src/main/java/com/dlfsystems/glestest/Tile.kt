@@ -5,5 +5,6 @@ enum class Tile {
     FLOOR,
     OPEN_DOOR,
     CLOSED_DOOR,
-    PLAYER
+    PLAYER,
+    CURSOR
 }

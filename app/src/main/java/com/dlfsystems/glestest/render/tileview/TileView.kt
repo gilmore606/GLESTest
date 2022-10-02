@@ -7,6 +7,7 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import com.dlfsystems.glestest.Level
 import com.dlfsystems.glestest.XY
+import com.dlfsystems.glestest.shaders.tileVertShader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -44,19 +45,34 @@ class TileView(context: Context, attrs: AttributeSet) :
         renderer.moveCenter(newX, newY)
     }
 
+    fun setCursor(position: XY) {
+        renderer.cursorPosition = position
+    }
+
+    fun clearCursor() {
+        renderer.cursorPosition = null
+    }
+
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
         renderer.viewLocation = XY(left, top) // this allocation is fine, layout happens rarely
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
+        if (lastScaleTime > System.currentTimeMillis() - 50) {
+            clearCursor()
+        }
         var handled = scaleDetector.onTouchEvent(event)
         return when (event?.action) {
             MotionEvent.ACTION_DOWN -> {
                 lastDownTime = System.currentTimeMillis()
+                if (lastScaleTime < System.currentTimeMillis() - 50) {
+                    setCursor(renderer.touchToTileXY(event.x, event.y))
+                }
                 handled
             }
             MotionEvent.ACTION_UP -> {
+                clearCursor()
                 if (lastDownTime > lastScaleTime) {
                     CoroutineScope(Dispatchers.Default).launch {
                         clicks.emit(renderer.touchToTileXY(event.x, event.y))
