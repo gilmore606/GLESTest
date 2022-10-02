@@ -11,7 +11,6 @@ class DrawList(
     fragmentCode: String,
     private val tileSet: TileSet
 ) {
-    var aspectRatio = 1.0
 
     private val COORDS_PER_VERTEX = 2
     private val VERTEX_STRIDE = COORDS_PER_VERTEX * 4
@@ -62,10 +61,18 @@ class DrawList(
         vertCount = 0
     }
 
-    fun addQuad(ix0: Double, iy0: Double, ix1: Double, iy1: Double, tile: Tile, visibility: Float) {
-        val x0 = (ix0 / aspectRatio).toFloat()
+    fun addTileQuad(col: Int, row: Int, stride: Double,
+                    tile: Tile, visibility: Float, aspectRatio: Double) {
+        val x0 = (col.toDouble() * stride - (stride * 0.5)) / aspectRatio
+        val y0 = row.toDouble() * stride - (stride * 0.5)
+        addQuad(x0, y0, x0 + stride / aspectRatio, y0 + stride, tile, visibility)
+    }
+
+    fun addQuad(ix0: Double, iy0: Double, ix1: Double, iy1: Double,
+                tile: Tile, visibility: Float) {
+        val x0 = (ix0).toFloat()
         val y0 = (-iy0).toFloat()
-        val x1 = (ix1 / aspectRatio).toFloat()
+        val x1 = (ix1).toFloat()
         val y1 = (-iy1).toFloat()
 
         val tileX = tileSet.getTileX(tile)

@@ -12,6 +12,7 @@ object SimpleCarto : Carto() {
         level.makeRoom(5, 5, 11, 9)
         level.makeRoom(8, 12, 17, 18)
         level.makeRoom(11, 9, 11, 12)
+        level.makeRoom(13, 16, 13, 16, WALL)
         return level
     }
 

@@ -2,7 +2,6 @@ package com.dlfsystems.glestest
 
 import com.dlfsystems.glestest.Tile.*
 import com.dlfsystems.glestest.render.castShadows
-import timber.log.Timber
 
 class Level(val width: Int, val height: Int) {
 
@@ -14,7 +13,8 @@ class Level(val width: Int, val height: Int) {
     private var isVisibilityDirty = false
 
     val tiles = Array(width) { Array(height) { WALL } }
-    val visibility = Array(width) { Array(height) { 0f } }
+    val visible = Array(width) { Array(height) { false } }
+    val seen = Array(width) { Array(height) { false } }
 
     fun setTile(x: Int, y: Int, tile: Tile) {
         tiles[x][y] = tile
@@ -39,30 +39,36 @@ class Level(val width: Int, val height: Int) {
         }
     }
 
-    private fun setTileVisibility(x: Int, y: Int, vis: Float) {
+    fun isWalkableAt(x: Int, y: Int): Boolean = try {
+        tiles[x][y] == FLOOR
+    } catch (e: ArrayIndexOutOfBoundsException) { false }
+
+    fun renderVisibilityAt(x: Int, y: Int): Float = try {
+        (if (seen[x][y]) 0.6f else 0f) + (if (visible[x][y]) 0.4f else 0f)
+    } catch (e: ArrayIndexOutOfBoundsException) { 0f }
+
+    private fun setTileVisibility(x: Int, y: Int, vis: Boolean) {
         try {
-            visibility[x][y] = vis
-            Timber.d("vis $x $y = $vis")
+            visible[x][y] = vis
+            if (vis) seen[x][y] = true
         } catch (e: ArrayIndexOutOfBoundsException) { }
     }
 
-    private fun isOpaqueAt(x: Int, y: Int): Boolean {
-        try {
-            return tiles[x][y] !== FLOOR
-        } catch (e: ArrayIndexOutOfBoundsException) { return true }
-    }
+    private fun isOpaqueAt(x: Int, y: Int): Boolean = try {
+            tiles[x][y] !== FLOOR
+        } catch (e: ArrayIndexOutOfBoundsException) { true }
 
     private fun doUpdateVisibility(distance: Int = 14) {
         for (y in 0 until height) {
             for (x in 0 until width) {
-                visibility[x][y] = 0.5f
+                visible[x][y] = false
             }
         }
         castShadows(
             pov,
             distance.toFloat(),
             { x, y -> isOpaqueAt(x, y) },
-            { x, y, vis -> setTileVisibility(x, y, if (vis) 1f else 0f) }
+            { x, y, vis -> setTileVisibility(x, y, vis) }
         )
     }
 }

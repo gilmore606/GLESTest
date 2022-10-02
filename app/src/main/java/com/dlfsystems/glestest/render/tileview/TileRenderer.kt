@@ -5,7 +5,6 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import com.dlfsystems.glestest.Level
 import com.dlfsystems.glestest.R
-import com.dlfsystems.glestest.Tile
 import com.dlfsystems.glestest.Tile.*
 import com.dlfsystems.glestest.XY
 import com.dlfsystems.glestest.render.DrawList
@@ -23,13 +22,14 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
     var zoom = 2.0
         set(value) {
             field = value
-            updateStride()
+            updateSurfaceParams()
         }
 
     var viewLocation = XY(0, 0)
 
     private var width = 0
     private var height = 0
+    private var aspectRatio = 1.0
 
     private lateinit var dungeonTiles: TileSet
     private lateinit var dungeonDrawList: DrawList
@@ -53,11 +53,17 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
 
     // Convert an XY pixel touch event to an absolute tile XY on the level.
     fun touchToTileXY(touchX: Float, touchY: Float): XY {
+        val glX = ((touchX - viewLocation.x) / width) * 2.0 - 1.0
+        val glY = ((touchY - viewLocation.y) / height) * 2.0 - 1.0
+        val col = ((glX * aspectRatio) + stride * 0.5) / stride
+        val row = (glY + stride * 0.5) / stride
+        Timber.d("------>   $col $row")
+        //return XY(col.toInt(), row.toInt())
+
         val x = (touchX - viewLocation.x) + pixelStride / 2 - width / 2
         val y = (touchY - viewLocation.y) - height / 2
         val xSign = x.sign.toInt()
         val ySign = y.sign.toInt()
-        Timber.d("$x $y stride $pixelStride")
         return XY(
             abs(x / pixelStride).toInt() * xSign + (if (xSign == -1) -1 else 0) + pov.x,
             abs(y / pixelStride).toInt() * ySign + (if (ySign == -1) -1 else 0) + pov.y
@@ -71,24 +77,17 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
     }
 
     override fun onSurfaceChanged(p0: GL10?, newWidth: Int, newHeight: Int) {
-        GLES20.glViewport(0, 0, newWidth, newHeight)
-        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
-        GLES20.glEnable(GLES20.GL_BLEND)
-        val aspectRatio = newWidth.toDouble() / newHeight.toDouble()
-        dungeonDrawList.aspectRatio = aspectRatio
-        mobDrawList.aspectRatio = aspectRatio
         width = newWidth
         height = newHeight
-        updateStride()
+
+        GLES20.glViewport(0, 0, width, height)
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
+        GLES20.glEnable(GLES20.GL_BLEND)
+
+        updateSurfaceParams()
     }
 
     override fun onDrawFrame(p0: GL10?) {
-        fun DrawList.addTileQuad(col: Int, row: Int, tile: Tile, visibility: Float) {
-            val x0 = col.toDouble() * stride - (stride * 0.5)
-            val y0 = row.toDouble() * stride - (stride * 0.5)
-            addQuad(x0, y0, x0 + stride, y0 + stride, tile, visibility)
-        }
-
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         dungeonDrawList.clear()
         mobDrawList.clear()
@@ -99,10 +98,10 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
                 for (ty in 0 until level.height) {
                     // TODO: optimize: only add onscreen quads
                     dungeonDrawList.addTileQuad(
-                        tx - pov.x,
-                        ty - pov.y,
+                        tx - pov.x, ty - pov.y, stride,
                         level.tiles[tx][ty],
-                        level.visibility[tx][ty]
+                        level.renderVisibilityAt(tx, ty),
+                        aspectRatio
                     )
                 }
             }
@@ -110,12 +109,12 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
 
         dungeonDrawList.draw()
 
-        mobDrawList.addTileQuad(0, 0, PLAYER, 1f)
+        mobDrawList.addTileQuad(0, 0, stride, PLAYER, 1f, aspectRatio)
         mobDrawList.draw()
     }
 
-    // Recalculate the size in glcoords of one tile
-    private fun updateStride() {
+    private fun updateSurfaceParams() {
+        aspectRatio = width.toDouble() / height.toDouble()
         stride = 1.0 / (height.coerceAtLeast(400).toDouble() * 0.01f) * zoom
         pixelStride = height / (2.0 / stride)
     }

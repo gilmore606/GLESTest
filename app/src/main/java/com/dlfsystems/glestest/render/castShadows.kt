@@ -80,9 +80,8 @@ fun castShadows(
                 done = true
             } else {
                 var doneRow = false
-                var col = -1
+                var col = 0
                 while (!doneRow && col <= row) {
-                    col++
                     pos = pov + transformOctant(row, col, octant)
                     if (pov.distanceTo(pos) > distance) {
                         doneRow = true
@@ -99,6 +98,7 @@ fun castShadows(
                             }
                         }
                     }
+                    col++
                 }
             }
         }
