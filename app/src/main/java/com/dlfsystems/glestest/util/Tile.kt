@@ -1,4 +1,4 @@
-package com.dlfsystems.glestest
+package com.dlfsystems.glestest.util
 
 enum class Tile {
     WALL,

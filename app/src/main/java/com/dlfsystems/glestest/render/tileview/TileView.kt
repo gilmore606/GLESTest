@@ -6,8 +6,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import com.dlfsystems.glestest.Level
-import com.dlfsystems.glestest.XY
-import com.dlfsystems.glestest.shaders.tileVertShader
+import com.dlfsystems.glestest.util.XY
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -55,7 +54,7 @@ class TileView(context: Context, attrs: AttributeSet) :
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        renderer.viewLocation = XY(left, top) // this allocation is fine, layout happens rarely
+        renderer.androidViewLocation = XY(left, top) // this allocation is fine, layout happens rarely
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {

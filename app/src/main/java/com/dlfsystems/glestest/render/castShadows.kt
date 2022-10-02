@@ -1,6 +1,6 @@
 package com.dlfsystems.glestest.render
 
-import com.dlfsystems.glestest.XY
+import com.dlfsystems.glestest.util.XY
 import java.lang.RuntimeException
 
 fun castShadows(

@@ -4,13 +4,15 @@ import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import com.dlfsystems.glestest.Level
-import com.dlfsystems.glestest.R
-import com.dlfsystems.glestest.Tile.*
-import com.dlfsystems.glestest.XY
+import com.dlfsystems.glestest.util.Tile.*
+import com.dlfsystems.glestest.util.XY
 import com.dlfsystems.glestest.render.DrawList
 import com.dlfsystems.glestest.render.TileSet
 import com.dlfsystems.glestest.shaders.tileFragShader
 import com.dlfsystems.glestest.shaders.tileVertShader
+import com.dlfsystems.glestest.tilesets.DungeonTileSet
+import com.dlfsystems.glestest.tilesets.MobTileSet
+import com.dlfsystems.glestest.tilesets.UITileSet
 import timber.log.Timber
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -25,7 +27,7 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
             updateSurfaceParams()
         }
 
-    var viewLocation = XY(0, 0)
+    var androidViewLocation = XY(0, 0)
 
     private var width = 0
     private var height = 0
@@ -58,15 +60,15 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
     // Convert an XY pixel touch event to an absolute tile XY on the level.
     fun touchToTileXY(touchX: Float, touchY: Float): XY {
         val topBarSpace = 96
-        val glX = ((touchX - viewLocation.x) / width) * 2.0 - 1.0
-        val glY = ((touchY - viewLocation.y - topBarSpace) / (height - topBarSpace)) * 2.0 - 1.0
+        val glX = ((touchX - androidViewLocation.x) / width) * 2.0 - 1.0
+        val glY = ((touchY - androidViewLocation.y - topBarSpace) / (height - topBarSpace)) * 2.0 - 1.0
         val col = ((glX * aspectRatio) + stride * 0.5) / stride + pov.x
         val row = (glY + stride * 0.5) / stride + pov.y
         Timber.d("------>   $col $row  ///  $glX $glY ")
         return XY(col.toInt(), row.toInt())
 
-        val x = (touchX - viewLocation.x) + pixelStride / 2 - width / 2
-        val y = (touchY - viewLocation.y) - height / 2
+        val x = (touchX - androidViewLocation.x) + pixelStride / 2 - width / 2
+        val y = (touchY - androidViewLocation.y) - height / 2
         val xSign = x.sign.toInt()
         val ySign = y.sign.toInt()
         return XY(
@@ -130,27 +132,14 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
         pixelStride = height / (2.0 / stride)
     }
 
-    // Make all the buffers etc we need on surface creation.
     private fun allocateResources() {
-        dungeonTiles = TileSet(R.drawable.tiles_dungeon, 10, 10, context).apply {
-            setTile(FLOOR, 6, 0)
-            setTile(WALL, 1, 0)
-            setTile(CLOSED_DOOR, 6, 3)
-            setTile(OPEN_DOOR, 6, 4)
-        }
-
+        dungeonTiles = DungeonTileSet(context)
         dungeonDrawList = DrawList(tileVertShader(), tileFragShader(), dungeonTiles)
 
-        mobTiles = TileSet(R.drawable.tiles_mob, 7, 4, context).apply {
-            setTile(PLAYER, 2, 2)
-        }
-
+        mobTiles = MobTileSet(context)
         mobDrawList = DrawList(tileVertShader(), tileFragShader(), mobTiles)
 
-        uiTiles = TileSet(R.drawable.tiles_ui, 1, 1, context).apply {
-            setTile(CURSOR, 0, 0)
-        }
-
+        uiTiles = UITileSet(context)
         uiDrawList = DrawList(tileVertShader(), tileFragShader(), uiTiles)
     }
 

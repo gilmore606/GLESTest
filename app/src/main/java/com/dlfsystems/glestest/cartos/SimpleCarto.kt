@@ -1,7 +1,7 @@
 package com.dlfsystems.glestest.cartos
 
 import com.dlfsystems.glestest.Level
-import com.dlfsystems.glestest.Tile.*
+import com.dlfsystems.glestest.util.Tile.*
 
 object SimpleCarto : Carto() {
 

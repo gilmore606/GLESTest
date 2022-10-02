@@ -25,9 +25,9 @@ class MainActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.Default).launch {
             tileView.clicks.collectLatest { xy ->
-                Timber.d("CLICK ON ${xy.x} ${xy.y}")
-                if (testLevel.isWalkableAt(xy.x, xy.y))
-                tileView.moveCenter(xy.x, xy.y)
+                if (testLevel.isWalkableAt(xy.x, xy.y)) {
+                    tileView.moveCenter(xy.x, xy.y)
+                }
             }
         }
     }

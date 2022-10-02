@@ -1,7 +1,7 @@
 package com.dlfsystems.glestest.render
 
 import android.opengl.GLES20
-import com.dlfsystems.glestest.Tile
+import com.dlfsystems.glestest.util.Tile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -33,6 +33,8 @@ class DrawList(
     private var shaderPositionHandle = -1
     private var shaderTexcoordHandle = -1
     private var shaderVisibilityHandle = -1
+
+    private val tileTexCoordBuffer = FloatBuffer.allocate(4)
 
     init {
         program = GLES20.glCreateProgram()
@@ -75,12 +77,11 @@ class DrawList(
         val x1 = (ix1).toFloat()
         val y1 = (-iy1).toFloat()
 
-        val tileX = tileSet.getTileX(tile)
-        val tileY = tileSet.getTileY(tile)
-        val tx0 = tileX * tileSet.tileRowStride
-        val tx1 = tx0 + tileSet.tileRowStride
-        val ty0 = tileY * tileSet.tileColumnStride
-        val ty1 = ty0 + tileSet.tileColumnStride
+        tileSet.getTexCoordsForTile(tile, tileTexCoordBuffer)
+        val tx0 = tileTexCoordBuffer[0]
+        val ty0 = tileTexCoordBuffer[1]
+        val tx1 = tileTexCoordBuffer[2]
+        val ty1 = tileTexCoordBuffer[3]
 
         vertexBuffer.put(x0) // doing this one float at a time to avoid allocating another buffer
         vertexBuffer.put(y0)

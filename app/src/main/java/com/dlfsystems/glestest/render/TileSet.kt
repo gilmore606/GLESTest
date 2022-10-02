@@ -4,7 +4,9 @@ import android.graphics.BitmapFactory
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLUtils
-import com.dlfsystems.glestest.Tile
+import com.dlfsystems.glestest.util.Tile
+import com.dlfsystems.glestest.tileholders.TileHolder
+import java.nio.FloatBuffer
 import kotlin.collections.HashMap
 
 class TileSet(
@@ -13,7 +15,7 @@ class TileSet(
     val tilesPerColumn: Int,
     context: Context
 ) {
-    var tilePositions: HashMap<Tile, Int> = HashMap()
+    var tileHolders: HashMap<Tile, TileHolder> = HashMap()
     var tileRowStride = 0.0f
     var tileColumnStride = 0.0f
 
@@ -44,10 +46,11 @@ class TileSet(
         textureHandle = texHandle[0]
     }
 
-    fun setTile(tile: Tile, x: Int, y: Int) {
-        tilePositions[tile] = x + y * tilesPerRow
+    fun setTile(tile: Tile, holder: TileHolder) {
+        tileHolders[tile] = holder
     }
 
-    fun getTileX(tile: Tile) = tilePositions[tile]?.let { it % tilesPerRow } ?: 0
-    fun getTileY(tile: Tile) = tilePositions[tile]?.let { it / tilesPerRow } ?: 0
+    fun getTexCoordsForTile(tile: Tile, outBuffer: FloatBuffer) {
+        tileHolders[tile]?.getTexCoords(outBuffer)
+    }
 }

@@ -1,7 +1,9 @@
 package com.dlfsystems.glestest
 
-import com.dlfsystems.glestest.Tile.*
+import com.dlfsystems.glestest.util.Tile.*
 import com.dlfsystems.glestest.render.castShadows
+import com.dlfsystems.glestest.util.Tile
+import com.dlfsystems.glestest.util.XY
 
 class Level(val width: Int, val height: Int) {
 
