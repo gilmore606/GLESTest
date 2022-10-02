@@ -22,6 +22,10 @@ class Level(val width: Int, val height: Int) {
         tiles[x][y] = tile
     }
 
+    fun getTile(x: Int, y: Int) = try {
+        tiles[x][y]
+    } catch (e: ArrayIndexOutOfBoundsException) { WALL }
+
     fun makeRoom(x0: Int, y0: Int, x1: Int, y1: Int, tile: Tile = FLOOR) {
         var y = y0
         while (y <= y1) {
@@ -55,7 +59,7 @@ class Level(val width: Int, val height: Int) {
         tiles[x][y] == FLOOR
     } catch (e: ArrayIndexOutOfBoundsException) { false }
 
-    fun renderVisibilityAt(x: Int, y: Int): Float = try {
+    fun visibilityAt(x: Int, y: Int): Float = try {
         (if (seen[x][y]) 0.6f else 0f) + (if (visible[x][y]) 0.4f else 0f)
     } catch (e: ArrayIndexOutOfBoundsException) { 0f }
 

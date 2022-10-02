@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLUtils
+import com.dlfsystems.glestest.Level
 import com.dlfsystems.glestest.util.Tile
 import com.dlfsystems.glestest.tileholders.TileHolder
 import java.nio.FloatBuffer
@@ -50,7 +51,10 @@ class TileSet(
         tileHolders[tile] = holder
     }
 
-    fun getTexCoordsForTile(tile: Tile, outBuffer: FloatBuffer) {
-        tileHolders[tile]?.getTexCoords(outBuffer)
-    }
+    fun getIndex(
+        tile: Tile,
+        level: Level? = null,
+        x: Int = 0,
+        y: Int = 0
+    ) = tileHolders[tile]?.getTextureIndex(level, x, y) ?: 0
 }

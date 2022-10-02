@@ -34,8 +34,6 @@ class DrawList(
     private var shaderTexcoordHandle = -1
     private var shaderVisibilityHandle = -1
 
-    private val tileTexCoordBuffer = FloatBuffer.allocate(4)
-
     init {
         program = GLES20.glCreateProgram()
         val vertexShader = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER)
@@ -64,24 +62,22 @@ class DrawList(
     }
 
     fun addTileQuad(col: Int, row: Int, stride: Double,
-                    tile: Tile, visibility: Float, aspectRatio: Double) {
+                    textureIndex: Int, visibility: Float, aspectRatio: Double) {
         val x0 = (col.toDouble() * stride - (stride * 0.5)) / aspectRatio
         val y0 = row.toDouble() * stride - (stride * 0.5)
-        addQuad(x0, y0, x0 + stride / aspectRatio, y0 + stride, tile, visibility)
+        addQuad(x0, y0, x0 + stride / aspectRatio, y0 + stride, textureIndex, visibility)
     }
 
     fun addQuad(ix0: Double, iy0: Double, ix1: Double, iy1: Double,
-                tile: Tile, visibility: Float) {
+                textureIndex: Int, visibility: Float) {
         val x0 = (ix0).toFloat()
         val y0 = (-iy0).toFloat()
         val x1 = (ix1).toFloat()
         val y1 = (-iy1).toFloat()
-
-        tileSet.getTexCoordsForTile(tile, tileTexCoordBuffer)
-        val tx0 = tileTexCoordBuffer[0]
-        val ty0 = tileTexCoordBuffer[1]
-        val tx1 = tileTexCoordBuffer[2]
-        val ty1 = tileTexCoordBuffer[3]
+        val tx0 = (textureIndex % tileSet.tilesPerRow) * tileSet.tileRowStride
+        val ty0 = (textureIndex / tileSet.tilesPerColumn) * tileSet.tileColumnStride
+        val tx1 = tx0 + tileSet.tileRowStride
+        val ty1 = ty0 + tileSet.tileColumnStride
 
         vertexBuffer.put(x0) // doing this one float at a time to avoid allocating another buffer
         vertexBuffer.put(y0)

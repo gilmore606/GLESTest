@@ -102,13 +102,17 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
 
         level?.also { level ->
             level.updateVisibility()
+            // TODO: optimize: only add onscreen quads
             for (tx in 0 until level.width) {
                 for (ty in 0 until level.height) {
-                    // TODO: optimize: only add onscreen quads
+                    val textureIndex = dungeonTiles.getIndex(
+                        level.tiles[tx][ty],
+                        level, tx, ty
+                    )
                     dungeonDrawList.addTileQuad(
                         tx - pov.x, ty - pov.y, stride,
-                        level.tiles[tx][ty],
-                        level.renderVisibilityAt(tx, ty),
+                        textureIndex,
+                        level.visibilityAt(tx, ty),
                         aspectRatio
                     )
                 }
@@ -117,11 +121,12 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
 
         dungeonDrawList.draw()
 
-        mobDrawList.addTileQuad(0, 0, stride, PLAYER, 1f, aspectRatio)
+        mobDrawList.addTileQuad(0, 0, stride, mobTiles.getIndex(PLAYER), 1f, aspectRatio)
         mobDrawList.draw()
 
         cursorPosition?.also { cursorPosition ->
-            uiDrawList.addTileQuad(cursorPosition.x - pov.x, cursorPosition.y - pov.y, stride, CURSOR, 1f, aspectRatio)
+            uiDrawList.addTileQuad(cursorPosition.x - pov.x, cursorPosition.y - pov.y, stride,
+                uiTiles.getIndex(CURSOR), 1f, aspectRatio)
         }
         uiDrawList.draw()
     }

@@ -1,8 +1,7 @@
 package com.dlfsystems.glestest.tileholders
 
+import com.dlfsystems.glestest.Level
 import com.dlfsystems.glestest.render.TileSet
-import com.dlfsystems.glestest.util.XY
-import java.nio.FloatBuffer
 
 class VariantsTile(
     set: TileSet
@@ -14,8 +13,8 @@ class VariantsTile(
         variants.add(Triple(frequency, tx, ty))
     }
 
-    override fun getTexCoords(outBuffer: FloatBuffer) {
-
+    override fun getTextureIndex(level: Level?, x: Int, y: Int): Int {
+        return pickIndexFromVariants(variants, x * 10 + y)
     }
 
 }
