@@ -24,21 +24,20 @@ class Level(val width: Int, val height: Int) {
 
     fun getTile(x: Int, y: Int) = try {
         tiles[x][y]
-    } catch (e: ArrayIndexOutOfBoundsException) { WALL }
+    } catch (e: ArrayIndexOutOfBoundsException) { FLOOR }
 
-    fun makeRoom(x0: Int, y0: Int, x1: Int, y1: Int, tile: Tile = FLOOR) {
-        var y = y0
-        while (y <= y1) {
-            var x = x0
-            while (x <= x1) {
-                setTile(x, y, tile)
-                x++
-            }
-            y++
-        }
-    }
+    fun getTile(xy: XY) = getTile(xy.x, xy.y)
 
     fun updateVisibility() {
+        if (false) {
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    visible[x][y] = true
+                    seen[x][y] = true
+                }
+            }
+            return
+        }
         val distance = 12f
         if (isVisibilityDirty) {
             for (y in 0 until height) {

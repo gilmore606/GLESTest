@@ -16,8 +16,6 @@ import com.dlfsystems.glestest.tilesets.UITileSet
 import timber.log.Timber
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
-import kotlin.math.abs
-import kotlin.math.sign
 
 class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
 
@@ -66,17 +64,7 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
         val row = (glY + stride * 0.5) / stride + pov.y
         Timber.d("------>   $col $row  ///  $glX $glY ")
         return XY(col.toInt(), row.toInt())
-
-        val x = (touchX - androidViewLocation.x) + pixelStride / 2 - width / 2
-        val y = (touchY - androidViewLocation.y) - height / 2
-        val xSign = x.sign.toInt()
-        val ySign = y.sign.toInt()
-        return XY(
-            abs(x / pixelStride).toInt() * xSign + (if (xSign == -1) -1 else 0) + pov.x,
-            abs(y / pixelStride).toInt() * ySign + (if (ySign == -1) -1 else 0) + pov.y
-        )
     }
-
 
     override fun onSurfaceCreated(p0: GL10?, config: EGLConfig?) {
         GLES20.glClearColor(0f, 0f, 0f, 1f)
@@ -105,16 +93,19 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
             // TODO: optimize: only add onscreen quads
             for (tx in 0 until level.width) {
                 for (ty in 0 until level.height) {
-                    val textureIndex = dungeonTiles.getIndex(
-                        level.tiles[tx][ty],
-                        level, tx, ty
-                    )
-                    dungeonDrawList.addTileQuad(
-                        tx - pov.x, ty - pov.y, stride,
-                        textureIndex,
-                        level.visibilityAt(tx, ty),
-                        aspectRatio
-                    )
+                    val vis = level.visibilityAt(tx, ty)
+                    if (vis > 0f) {
+                        val textureIndex = dungeonTiles.getIndex(
+                            level.tiles[tx][ty],
+                            level, tx, ty
+                        )
+                        dungeonDrawList.addTileQuad(
+                            tx - pov.x, ty - pov.y, stride,
+                            textureIndex,
+                            vis,
+                            aspectRatio
+                        )
+                    }
                 }
             }
         }

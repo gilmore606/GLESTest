@@ -11,6 +11,10 @@ class XY(var x: Int, var y: Int) {
     operator fun minus(b: XY): XY {
         return XY(x - b.x, y - b.y)
     }
+    operator fun times(b: Int): XY {
+        return XY(x * b, y * b)
+    }
+
     fun distanceTo(b: XY): Float {
         val x0 = x.toFloat()
         val x1 = b.x.toFloat()

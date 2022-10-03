@@ -2,6 +2,7 @@ package com.dlfsystems.glestest
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.dlfsystems.glestest.cartos.RoomyMaze
 import com.dlfsystems.glestest.cartos.SimpleCarto
 import com.dlfsystems.glestest.render.tileview.TileView
 import kotlinx.coroutines.CoroutineScope
@@ -19,9 +20,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val tileView = findViewById<TileView>(R.id.tile_view)
-        val testLevel = SimpleCarto.makeLevel()
+        val testLevel = RoomyMaze.makeLevel()
         tileView.observeLevel(testLevel)
-        tileView.moveCenter(7, 7)
+        tileView.moveCenter(20, 20)
 
         CoroutineScope(Dispatchers.Default).launch {
             tileView.clicks.collectLatest { xy ->

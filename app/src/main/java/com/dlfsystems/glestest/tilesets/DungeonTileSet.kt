@@ -45,6 +45,7 @@ fun DungeonTileSet(context: Context) =
             add(WallTile.Slot.RIGHTBOTTOM, 1f, 5, 4)
         })
 
+
         setTile(Tile.CLOSED_DOOR, SimpleTile(this, 6, 3))
         setTile(Tile.OPEN_DOOR, SimpleTile(this, 6, 4))
     }
