@@ -18,8 +18,10 @@ class TileView(context: Context, attrs: AttributeSet) :
     val clicks = MutableSharedFlow<XY>()
 
     private val renderer = TileRenderer(context)
+    private var level: Level? = null
     private var lastScaleTime = 0L
     private var lastDownTime = 0L
+    private var cursorLatched = false
 
     private val scaleListener = object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
@@ -45,7 +47,9 @@ class TileView(context: Context, attrs: AttributeSet) :
     }
 
     fun setCursor(position: XY) {
-        renderer.cursorPosition = position
+        if (level?.isReachableAt(position.x, position.y) == true) {
+            renderer.cursorPosition = position
+        } else clearCursor()
     }
 
     fun clearCursor() {
@@ -67,25 +71,34 @@ class TileView(context: Context, attrs: AttributeSet) :
                 lastDownTime = System.currentTimeMillis()
                 if (lastScaleTime < System.currentTimeMillis() - 50) {
                     setCursor(renderer.touchToTileXY(event.x, event.y))
-                }
+                    cursorLatched = true
+                } else clearCursor()
                 handled
             }
             MotionEvent.ACTION_UP -> {
-                clearCursor()
-                if (lastDownTime > lastScaleTime) {
+                if (renderer.cursorPosition != null) {
                     CoroutineScope(Dispatchers.Default).launch {
-                        clicks.emit(renderer.touchToTileXY(event.x, event.y))
+                        renderer.cursorPosition?.also { clicks.emit(it) }
+                        clearCursor()
                     }
                     handled = true
                 }
+                cursorLatched = false
                 handled
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (cursorLatched) {
+                    setCursor(renderer.touchToTileXY(event.x, event.y))
+                }
+                false
             }
             else -> handled || super.onTouchEvent(event)
         }
     }
 
-    fun observeLevel(level: Level) {
-        renderer.observeLevel(level)
+    fun observeLevel(newLevel: Level) {
+        level = newLevel
+        renderer.observeLevel(newLevel)
     }
 
 }

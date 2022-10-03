@@ -43,6 +43,13 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
     private var pixelStride: Double = 0.01
 
     var cursorPosition: XY? = null
+        set(value) {
+            if (field?.x != value?.x || field?.y != value?.y) {
+                field = value
+                updateCursorLine()
+            }
+        }
+    private var cursorLine: List<XY> = listOf()
 
     private val pov: XY
         get() = level?.pov ?: XY(0,0)
@@ -64,6 +71,16 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
         val row = (glY + stride * 0.5) / stride + pov.y
         Timber.d("------>   $col $row  ///  $glX $glY ")
         return XY(col.toInt(), row.toInt())
+    }
+
+    fun updateCursorLine() {
+        level?.also { level ->
+            cursorPosition?.also { cursorPosition ->
+                cursorLine = level.getPathToPOV(cursorPosition)
+            } ?: run {
+                cursorLine = listOf()
+            }
+        }
     }
 
     override fun onSurfaceCreated(p0: GL10?, config: EGLConfig?) {
@@ -118,6 +135,10 @@ class TileRenderer(val context: Context) : GLSurfaceView.Renderer {
         cursorPosition?.also { cursorPosition ->
             uiDrawList.addTileQuad(cursorPosition.x - pov.x, cursorPosition.y - pov.y, stride,
                 uiTiles.getIndex(CURSOR), 1f, aspectRatio)
+            cursorLine.forEach { xy ->
+                uiDrawList.addTileQuad(xy.x - pov.x, xy.y - pov.y, stride,
+                    uiTiles.getIndex(CURSOR), 1f, aspectRatio)
+            }
         }
         uiDrawList.draw()
     }

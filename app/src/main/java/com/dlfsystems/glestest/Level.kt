@@ -2,6 +2,7 @@ package com.dlfsystems.glestest
 
 import com.dlfsystems.glestest.util.Tile.*
 import com.dlfsystems.glestest.render.castShadows
+import com.dlfsystems.glestest.util.DijkstraMap
 import com.dlfsystems.glestest.util.Tile
 import com.dlfsystems.glestest.util.XY
 
@@ -11,8 +12,10 @@ class Level(val width: Int, val height: Int) {
         set(value) {
             field = value
             isVisibilityDirty = true
+            updateStepMap()
         }
     private var isVisibilityDirty = false
+    private val stepMap = DijkstraMap(this)
 
     val tiles = Array(width) { Array(height) { WALL } }
     val visible = Array(width) { Array(height) { false } }
@@ -54,8 +57,18 @@ class Level(val width: Int, val height: Int) {
         }
     }
 
+    fun updateStepMap() {
+        stepMap.update(this.pov)
+    }
+
+    fun getPathToPOV(from: XY): List<XY> = stepMap.pathToZero(from)
+
     fun isWalkableAt(x: Int, y: Int): Boolean = try {
         tiles[x][y] == FLOOR
+    } catch (e: ArrayIndexOutOfBoundsException) { false }
+
+    fun isReachableAt(x: Int, y: Int): Boolean = try {
+        stepMap.map[x][y] >= 0
     } catch (e: ArrayIndexOutOfBoundsException) { false }
 
     fun visibilityAt(x: Int, y: Int): Float = try {

@@ -1,8 +1,6 @@
 package com.dlfsystems.glestest.cartos
 
 import com.dlfsystems.glestest.util.*
-import timber.log.Timber
-import kotlin.math.abs
 import kotlin.random.Random
 
 object RoomyMaze : Carto() {
@@ -95,7 +93,6 @@ object RoomyMaze : Carto() {
             // Remove the merged regions from use.
             openRegions.removeAll(regions)
             openRegions.add(mergedRegion)
-            Timber.d("down to $openRegions")
 
             // Dig the connection.
             // TODO: doors and shit.

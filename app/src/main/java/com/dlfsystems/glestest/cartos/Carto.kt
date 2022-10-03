@@ -1,6 +1,7 @@
 package com.dlfsystems.glestest.cartos
 
 import com.dlfsystems.glestest.Level
+import com.dlfsystems.glestest.util.CARDINALS
 import com.dlfsystems.glestest.util.Rect
 import com.dlfsystems.glestest.util.Tile
 import com.dlfsystems.glestest.util.XY
@@ -9,13 +10,7 @@ import kotlin.random.Random
 
 abstract class Carto {
 
-    val NORTH = XY(0, -1)
-    val SOUTH = XY(0, 1)
-    val WEST = XY(-1, 0)
-    val EAST = XY(1, 0)
-    val NO_DIR = XY(0, 0)
 
-    val CARDINALS = listOf(NORTH, SOUTH, WEST, EAST)
 
     protected lateinit var level: Level
     protected lateinit var regions: Array<Array<Int?>>
